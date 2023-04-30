@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>companiesWindow</class>
+ <widget class="QWidget" name="companiesWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>350</width>
+    <height>350</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>350</width>
+    <height>350</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>350</width>
+    <height>350</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Компании</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../icons/companies.png</normaloff>../icons/companies.png</iconset>
+  </property>
+  <widget class="QLineEdit" name="companyNameEdit">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>205</y>
+     <width>150</width>
+     <height>30</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="companyLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>180</y>
+     <width>150</width>
+     <height>15</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Компания</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="typeLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>245</y>
+     <width>150</width>
+     <height>15</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Тип</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="companyTypeComboBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>265</y>
+     <width>150</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>partner</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>client</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="domainLabel">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>180</y>
+     <width>150</width>
+     <height>15</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Связать домен</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="DomainEdit">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>205</y>
+     <width>150</width>
+     <height>30</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="CompanyDomainComboBox">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>265</y>
+     <width>150</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="companyDomainLabel">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>245</y>
+     <width>150</width>
+     <height>15</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>С компанией</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="addCompanyButton">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>300</y>
+     <width>150</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Добавить компанию</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="addDomainButton">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>300</y>
+     <width>150</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Связать</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>175</x>
+     <y>180</y>
+     <width>16</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="QTreeView" name="treeView">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>331</width>
+     <height>161</height>
+    </rect>
+   </property>
+   <property name="editTriggers">
+    <set>QAbstractItemView::NoEditTriggers</set>
+   </property>
+   <attribute name="headerVisible">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

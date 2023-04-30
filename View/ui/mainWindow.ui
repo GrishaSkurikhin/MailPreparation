@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1200</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1200</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
+  </property>
+  <property name="windowTitle">
+   <string>Система обработки корпоративной почты</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../icons/main.png</normaloff>../icons/main.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTreeView" name="MailsTreeView">
+    <property name="geometry">
+     <rect>
+      <x>570</x>
+      <y>30</y>
+      <width>610</width>
+      <height>510</height>
+     </rect>
+    </property>
+    <property name="autoScrollMargin">
+     <number>22</number>
+    </property>
+    <property name="editTriggers">
+     <set>QAbstractItemView::NoEditTriggers</set>
+    </property>
+    <property name="alternatingRowColors">
+     <bool>false</bool>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::ExtendedSelection</enum>
+    </property>
+    <attribute name="headerCascadingSectionResizes">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="headerHighlightSections">
+     <bool>false</bool>
+    </attribute>
+   </widget>
+   <widget class="QTabWidget" name="TabWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>550</width>
+      <height>531</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <widget class="QWidget" name="Data">
+     <attribute name="title">
+      <string>Данные</string>
+     </attribute>
+     <widget class="QGroupBox" name="DownloadGroupBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>141</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Import</string>
+      </property>
+      <widget class="QPushButton" name="DownloadButton">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>88</y>
+         <width>120</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Загрузить</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="FileNameLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>120</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Путь:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="MailsCountLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>68</y>
+         <width>120</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Число писем: 0</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="ChooseFileButton">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>120</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Выбрать путь...</string>
+       </property>
+      </widget>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>120</y>
+         <width>120</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="ExportGroupBox">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>10</y>
+        <width>210</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Export</string>
+      </property>
+      <widget class="QLabel" name="FormatLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>90</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Формат данных</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="ChooseFormatComboBox">
+       <property name="geometry">
+        <rect>
+         <x>105</x>
+         <y>26</y>
+         <width>90</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="currentText">
+        <string>txt</string>
+       </property>
+       <property name="maxCount">
+        <number>2147483646</number>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+       </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
+       <item>
+        <property name="text">
+         <string>txt</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>csv</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>json</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QPushButton" name="ExportAllButton">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>65</y>
+         <width>150</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Экспорт всех</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="ExportSelectedButton">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>103</y>
+         <width>150</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Экспорт выбранных</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QTextBrowser" name="InformationBrowser">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>169</y>
+        <width>521</width>
+        <height>321</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="Search">
+     <attribute name="title">
+      <string>Поиск</string>
+     </attribute>
+     <widget class="QComboBox" name="PriorityComboBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>450</y>
+        <width>100</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>All</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Highest</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>High</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Normal</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Low</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Lowest</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="PriorityLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>425</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Приоритет</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="KeywordsGroupBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>320</y>
+        <width>331</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>По ключевым словам</string>
+      </property>
+      <widget class="QLabel" name="InSubjectLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>170</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>В теме</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="InTextLabel">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>20</y>
+         <width>151</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>В тексте</string>
+       </property>
+      </widget>
+      <widget class="QTextEdit" name="InSubjectEdit">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>40</y>
+         <width>151</width>
+         <height>51</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QTextEdit" name="InTextEdit">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>40</y>
+         <width>151</width>
+         <height>51</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="RecieverGroupBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>260</width>
+        <height>300</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Получатель</string>
+      </property>
+      <widget class="QListView" name="RecieverListView">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>240</width>
+         <height>130</height>
+        </rect>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
+      </widget>
+      <widget class="QListView" name="RecieverCompaniesListView">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>160</y>
+         <width>240</width>
+         <height>100</height>
+        </rect>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="RecieverCompanyTypeComboBox">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>270</y>
+         <width>160</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>All</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Partners</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Clients</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="RecieverCompanyTypeLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>273</y>
+         <width>80</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Тип компании</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="SenderGroupBox">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>10</y>
+        <width>260</width>
+        <height>300</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Отправитель</string>
+      </property>
+      <widget class="QListView" name="SenderListView">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>240</width>
+         <height>130</height>
+        </rect>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
+      </widget>
+      <widget class="QListView" name="SenderCompaniesListView">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>160</y>
+         <width>240</width>
+         <height>100</height>
+        </rect>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="SenderCompanyTypeComboBox">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>270</y>
+         <width>160</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>All</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Partners</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Clients</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="SenderCompanyTypeLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>273</y>
+         <width>81</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Тип компании</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QDateTimeEdit" name="ToDateTimeEdit">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>473</y>
+        <width>130</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="dateTime">
+       <datetime>
+        <hour>0</hour>
+        <minute>0</minute>
+        <second>0</second>
+        <year>2023</year>
+        <month>1</month>
+        <day>1</day>
+       </datetime>
+      </property>
+      <property name="calendarPopup">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="TimeLabel">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>425</y>
+        <width>160</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Время отправки</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="TimeFromLabel">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>450</y>
+        <width>25</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>От</string>
+      </property>
+     </widget>
+     <widget class="QDateTimeEdit" name="FromDateTimeEdit">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>447</y>
+        <width>130</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="calendarPopup">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="TimeToLabel">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>476</y>
+        <width>25</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>До</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="FindButton">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>440</y>
+        <width>101</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Поиск</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="DeleteAllFiltersButton">
+      <property name="geometry">
+       <rect>
+        <x>430</x>
+        <y>440</y>
+        <width>111</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Удалить
+ все фильтры</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="FiltersTypeGroupBox">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>320</y>
+        <width>181</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Тип соединения фильтров</string>
+      </property>
+      <widget class="QRadioButton" name="IntersectionRadioButton">
+       <property name="geometry">
+        <rect>
+         <x>15</x>
+         <y>30</y>
+         <width>140</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Пересечение (OR)</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="UnionRadioButton">
+       <property name="geometry">
+        <rect>
+         <x>15</x>
+         <y>60</y>
+         <width>140</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Объединение (AND)</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1200</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Управление</string>
+    </property>
+    <addaction name="DBSettings"/>
+    <addaction name="Companies"/>
+    <addaction name="Help_2"/>
+    <addaction name="separator"/>
+    <addaction name="Exit_2"/>
+   </widget>
+   <addaction name="menu"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="Database">
+   <property name="text">
+    <string>База данных</string>
+   </property>
+  </action>
+  <action name="Settings">
+   <property name="text">
+    <string>Настройки</string>
+   </property>
+  </action>
+  <action name="Exit">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+  </action>
+  <action name="Help">
+   <property name="text">
+    <string>Помощь</string>
+   </property>
+  </action>
+  <action name="DBSettings">
+   <property name="text">
+    <string>База данных</string>
+   </property>
+  </action>
+  <action name="Help_2">
+   <property name="text">
+    <string>Помощь</string>
+   </property>
+  </action>
+  <action name="Exit_2">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+  </action>
+  <action name="Companies">
+   <property name="text">
+    <string>Компании</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
