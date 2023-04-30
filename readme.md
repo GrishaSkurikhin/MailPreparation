@@ -12,6 +12,10 @@
 Электронная почта в программу поступает в виде файлов формата eml.
 Затем из этих файлов достаются необходимые метаданные (тема, отправитель, получатели, дата отправки и другое), а также текст письма и его вложения.
 
+<p align="center">
+<img width="500" src="https://raw.githubusercontent.com/GrishaSkurikhin/MailPreparation/e90704b03036e7db6827fadc1caebd547e37011e/eml.png"
+</p>
+
 В дополнение к этой информации указывается наименование компаний-отправителей и компаний-получателей, которые могут быть как партнерами, так и клиентами. 
 
 Программой обрабатываются вложения следующих форматов: pdf, docx, txt. 
@@ -21,6 +25,20 @@
 
 Когда электронные письма загружены в базу данных и произведен их поиск или фильтрация, письма можно получить в следующих форматах: txt, csv и json. 
 txt в этом случае представляет собой только корпус текстов писем, а csv и json хранят всю информацию о письмах.
+
+<p align="center">
+<img width="600" src="https://raw.githubusercontent.com/GrishaSkurikhin/MailPreparation/e90704b03036e7db6827fadc1caebd547e37011e/formats.png"
+</p>
+
+**Скриншоты работы программы:**
+
+<p align="center">
+<img width="700" src="https://raw.githubusercontent.com/GrishaSkurikhin/MailPreparation/e90704b03036e7db6827fadc1caebd547e37011e/screenshot1.png"
+</p>
+
+<p align="center">
+<img width="700" src="https://raw.githubusercontent.com/GrishaSkurikhin/MailPreparation/e90704b03036e7db6827fadc1caebd547e37011e/screenshot2.png"
+</p>
 
 ## Описание архитектуры проекта
 Для реализации системы были выбраны технологии **Python** и **PostgreSQL** из-за их гибкости и свободного распространения.
@@ -36,6 +54,10 @@ txt в этом случае представляет собой только к
 2.	**Представления**:
     1.	**v_mails_info** – обобщенная информация о всех письмах.
     2.	**v_companies_domains** – информация о компаниях и их доменах.
+    
+<p align="center">
+<img width="700" src="https://raw.githubusercontent.com/GrishaSkurikhin/MailPreparation/e90704b03036e7db6827fadc1caebd547e37011e/er-diagram.png"
+</p>
 
 Проект разделен на 2 части: **модель** (model) и **представление** (view). 
 
@@ -53,3 +75,7 @@ txt в этом случае представляет собой только к
 **Представление** является слоем, отвечающим за отображение данных. В представлении происходит создание и обновление графического интерфейса, который позволяет пользователю взаимодействовать с данными. 
 
 Интерфейс написан на фреймворке PyQt5 и включает в себя несколько классов окон.
+
+<p align="center">
+<img width="600" src="https://raw.githubusercontent.com/GrishaSkurikhin/MailPreparation/e90704b03036e7db6827fadc1caebd547e37011e/classes.jpg"
+</p>
