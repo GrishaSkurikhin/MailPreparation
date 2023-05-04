@@ -18,7 +18,7 @@ class Ui_companiesWindow(object):
         companiesWindow.setMinimumSize(QtCore.QSize(350, 350))
         companiesWindow.setMaximumSize(QtCore.QSize(350, 350))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../icons/companies.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("View/icons/companies.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         companiesWindow.setWindowIcon(icon)
         self.companyNameEdit = QtWidgets.QLineEdit(companiesWindow)
         self.companyNameEdit.setGeometry(QtCore.QRect(10, 205, 150, 30))

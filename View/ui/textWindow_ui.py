@@ -18,7 +18,7 @@ class Ui_textWindow(object):
         textWindow.setMinimumSize(QtCore.QSize(700, 500))
         textWindow.setMaximumSize(QtCore.QSize(700, 500))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../icons/info.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("View/icons/info.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         textWindow.setWindowIcon(icon)
         self.textEdit = QtWidgets.QTextEdit(textWindow)
         self.textEdit.setGeometry(QtCore.QRect(0, 0, 700, 311))

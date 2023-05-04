@@ -11,7 +11,7 @@ class Mail:
         self.id, self.in_reply_to, self.sender = id, in_reply_to, sender
         self.recievers, self.subject, self.body = recievers, subject, body
         self.date, self.priority, self.files = date, priority, files
-        
+
     def __hash__(self):
         return hash(self.id)
     

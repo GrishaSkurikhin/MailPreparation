@@ -177,14 +177,12 @@ class mainWindow(QtWidgets.QMainWindow):
             keywordsSubject = []
         if keywordsText[0] == "":
             keywordsText = []
-        '''
+
         fields = ["reciever_address" for i in range(len(reciviers_list))] + \
                 ["sender_address" for i in range(len(senders_list))] + \
                 ["reciever_company_name" for i in range(len(reciviers_comp_list))] + \
                 ["sender_company_name" for i in range(len(senders_comp_list))]
-        '''
-        fields = ["reciever_address" for i in range(len(reciviers_list))] + \
-                ["sender_address" for i in range(len(senders_list))]
+
         filters = reciviers_list + senders_list + reciviers_comp_list + senders_comp_list
 
         if priority != "":

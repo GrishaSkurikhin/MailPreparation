@@ -6,6 +6,7 @@ from email.utils import parseaddr
 from bs4 import BeautifulSoup
 from dateutil import parser
 from pathlib import Path
+import os
 
 from Model.Mail import *
 from Model.FileConverter import *
@@ -25,7 +26,7 @@ class Email:
         for file in eml_files:
             try:
                 with open(file, 'rb') as fp:
-                    name = fp.name
+                    name = os.path.basename(fp.name)
                     try:
                         msg = BytesParser(policy=policy.default).parse(fp)
                     except:

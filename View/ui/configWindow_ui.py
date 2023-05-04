@@ -18,7 +18,7 @@ class Ui_configWindow(object):
         configWindow.setMinimumSize(QtCore.QSize(285, 230))
         configWindow.setMaximumSize(QtCore.QSize(285, 230))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../icons/config.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("View/icons/config.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         configWindow.setWindowIcon(icon)
         self.HostLabel = QtWidgets.QLabel(configWindow)
         self.HostLabel.setGeometry(QtCore.QRect(10, 10, 120, 40))

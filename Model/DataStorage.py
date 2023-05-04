@@ -205,7 +205,9 @@ class DataStorage:
     
     def get_companies_domains(self) -> list[dict]:
          cursor = self.connection.cursor()
-         query = f"SELECT * FROM {self.v_companies_domains}"
+         query = f'''SELECT company_id, company_name, company_type, array_agg(ARRAY[domain_id::text, domain]) AS domains
+                     FROM {self.v_companies_domains}
+                     GROUP BY company_id, company_name, company_type;'''
          cursor.execute(query)
          rows = cursor.fetchall()
          cursor.close()
@@ -228,10 +230,10 @@ class DataStorage:
             if rows_mails[i][0] in viewed_mails:
                 continue
             # объединяем отправителей
-            recievers = [{"name": rows_mails[i][4], "email": rows_mails[i][5], "type": rows_mails[i][6]}]
+            recievers = [{"name": rows_mails[i][6], "email": rows_mails[i][7], "type": rows_mails[i][8], "company_name": rows_mails[i][9], "company_type": rows_mails[i][10]}]
             for j in range(len(rows_mails)):
                 if rows_mails[i][0] == rows_mails[j][0] and i != j:
-                    recievers.append({"name": rows_mails[j][4], "email": rows_mails[j][5], "type": rows_mails[j][6]})
+                    recievers.append({"name": rows_mails[i][6], "email": rows_mails[j][7], "type": rows_mails[j][8], "company_name": rows_mails[j][9], "company_type": rows_mails[j][10]})
                     viewed_mails.append(rows_mails[j][0])
             
             # Добавляем файлы
@@ -240,12 +242,17 @@ class DataStorage:
                 if row_file[3] == rows_mails[i][0]:
                     files.append({"id": row_file[0], "filename": row_file[1], "text": row_file[2], "bytes": None})
 
-            mail_list.append(Mail(rows_mails[i][0], rows_mails[i][1], {"name":rows_mails[i][2], "email": rows_mails[i][3]}, recievers, rows_mails[i][7], rows_mails[i][8], str(rows_mails[i][9]), rows_mails[i][10], files))
+            mail_list.append(Mail(rows_mails[i][0], rows_mails[i][1], 
+                                  {"name":rows_mails[i][2], "email": rows_mails[i][3], "company_name": rows_mails[i][4], "company_type": rows_mails[i][5]}, 
+                                  recievers, rows_mails[i][11], rows_mails[i][12], str(rows_mails[i][13]), rows_mails[i][14], files))
 
         return mail_list
     
     def get_all_mails(self) -> list[Mail]:
-         get_mails_query = f'''SELECT id, reply_id, sender_name, sender_address, reciever_name, reciever_address, reciever_type, subject, body, datetime, priority
+         get_mails_query = f'''SELECT id, reply_id, 
+                               sender_name, sender_address, sender_company_name, sender_company_type, 
+                               reciever_name, reciever_address, reciever_type, reciever_company_name, reciever_company_type, 
+                               subject, body, datetime, priority
                                FROM {self.v_mails_info}'''
          get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
          cursor = self.connection.cursor()
@@ -262,7 +269,10 @@ class DataStorage:
     def simple_search(self, fields: list, filters: list, logic_operator: str) -> list[Mail]:
         # Поиск по одному фильтру: адресу получателя, отправителя, компании, типу компании, приоритету
         fields_list = [f"{field} = %s" for field in fields]
-        get_mails_query = f'''SELECT id, reply_id, sender_name, sender_address, reciever_name, reciever_address, reciever_type, subject, body, datetime, priority
+        get_mails_query = f'''SELECT id, reply_id, 
+                               sender_name, sender_address, sender_company_name, sender_company_type, 
+                               reciever_name, reciever_address, reciever_type, reciever_company_name, reciever_company_type, 
+                               subject, body, datetime, priority
                               FROM {self.v_mails_info} WHERE {f" {logic_operator} ".join(fields_list)}'''
         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
         cursor = self.connection.cursor()
@@ -278,7 +288,10 @@ class DataStorage:
 
     def time_search(self, timefrom: str, timeto: str) -> list[Mail]:
         # Поиск по времени
-        get_mails_query = f'''SELECT id, reply_id, sender_name, sender_address, reciever_name, reciever_address, reciever_type, subject, body, datetime, priority
+        get_mails_query = f'''SELECT id, reply_id, 
+                               sender_name, sender_address, sender_company_name, sender_company_type, 
+                               reciever_name, reciever_address, reciever_type, reciever_company_name, reciever_company_type, 
+                               subject, body, datetime, priority
                             FROM {self.v_mails_info} WHERE datetime > %s AND datetime < %s'''
         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
         cursor = self.connection.cursor()
@@ -295,7 +308,10 @@ class DataStorage:
     
     def fulltext_search(self, search_words: list, field: str) -> list[Mail]:
         # Полнотекстовый поиск по ключевым словам: по теме или тексту письма (вложений)
-        query = f'''SELECT id, reply_id, sender_name, sender_address, reciever_name, reciever_address, reciever_type, subject, body, datetime, priority
+        query = f'''SELECT id, reply_id, 
+                               sender_name, sender_address, sender_company_name, sender_company_type, 
+                               reciever_name, reciever_address, reciever_type, reciever_company_name, reciever_company_type, 
+                               subject, body, datetime, priority
                 FROM {self.v_mails_info} WHERE to_tsvector('russian', {field}) @@ to_tsquery('russian', %s)'''
         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
 

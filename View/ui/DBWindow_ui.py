@@ -18,7 +18,7 @@ class Ui_DBWindow(object):
         DBWindow.setMinimumSize(QtCore.QSize(500, 200))
         DBWindow.setMaximumSize(QtCore.QSize(500, 200))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../icons/database.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("View/icons/database.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         DBWindow.setWindowIcon(icon)
         self.CreateDB = QtWidgets.QPushButton(DBWindow)
         self.CreateDB.setGeometry(QtCore.QRect(10, 70, 171, 51))
