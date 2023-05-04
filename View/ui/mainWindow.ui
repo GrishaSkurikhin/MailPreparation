@@ -657,7 +657,7 @@
       <property name="title">
        <string>Тип соединения фильтров</string>
       </property>
-      <widget class="QRadioButton" name="IntersectionRadioButton">
+      <widget class="QRadioButton" name="UnionRadioButton">
        <property name="geometry">
         <rect>
          <x>15</x>
@@ -673,7 +673,7 @@
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QRadioButton" name="UnionRadioButton">
+      <widget class="QRadioButton" name="IntersectionRadioButton">
        <property name="geometry">
         <rect>
          <x>15</x>

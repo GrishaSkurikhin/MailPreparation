@@ -11,6 +11,12 @@ class Mail:
         self.id, self.in_reply_to, self.sender = id, in_reply_to, sender
         self.recievers, self.subject, self.body = recievers, subject, body
         self.date, self.priority, self.files = date, priority, files
+        
+    def __hash__(self):
+        return hash(self.id)
+    
+    def __eq__(self, other):
+        return isinstance(other, Mail) and self.id == other.id
     
     def get_export_dict(self) -> dict:
         return {"subject": self.subject,

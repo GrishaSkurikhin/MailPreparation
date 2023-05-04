@@ -22,29 +22,38 @@ class Model:
         self.current_eml = Email(Path(email_path))
         return len(self.current_eml.msgs)
     
-    def Search(self, fields, filters, timefrom, timeto, keywordsSubject, keywordsText, logic_operator):
-        return []
-        '''
-        def joinLists(list1, list2):
-            if logic_operator == "AND":
-                intersection = [d1 for d1 in list1 for d2 in list2 if d1['id'] == d2['id']]
-                return intersection
-            elif logic_operator == "OR":
-                set1 = set(d['id'] for d in list1)
-                union = [d for d in list1]
-                for d in list2:
-                    if d['id'] not in set1:
-                        union.append(d)
-                return union
+    def search(self, fields: list[str], filters: list[str], 
+               timefrom: str, timeto: str, 
+               keywordsSubject: list[str], keywordsText: list[str], 
+               logic_operator: str) -> list[Mail]:
+        def check_condition(func):
+            def wrapper(*args, **kwargs):
+                if len(args[0]) == 0 and logic_operator == "AND":
+                    return self.dataStorage.get_all_mails()
+                elif len(args[0]) == 0 and logic_operator == "OR":
+                    return []
+                else:
+                    return func(*args, **kwargs)
+            return wrapper
         
-        list1 = self.dataStorage.simple_search(fields, filters, logic_operator) if len(fields) != 0 else []
-        list2 = self.dataStorage.time_search(timefrom, timeto)
-        list3 = self.dataStorage.fulltext_search("subject", keywordsSubject) if len(keywordsSubject) != 0 else []
-        list4 = self.dataStorage.fulltext_search("body", keywordsText) if len(keywordsText) != 0 else []
-        join_list = joinLists(list1, joinLists(list2, joinLists(list3, list4)))
-        return join_list
-        '''
+        @check_condition
+        def simple_search(fields, filters):
+            return self.dataStorage.simple_search(fields, filters, logic_operator)
+
+        @check_condition
+        def fulltext_search(keywords, field):
+            return self.dataStorage.fulltext_search(keywords, field)
         
+        set1 = set(simple_search(fields, filters))
+        set2 = set(self.dataStorage.time_search(timefrom, timeto))
+        set3 = set(fulltext_search(keywordsSubject, "subject"))
+        set4 = set(fulltext_search(keywordsText, "body"))
+        
+        if logic_operator == "AND":
+            return list(set1 & set2 & set3 & set4)
+        elif logic_operator == "OR":
+            return list(set1 | set2 | set3 | set4)
+
     def add_mails(self):
         i = 1
         for filename, mail in self.current_eml.get_mails():

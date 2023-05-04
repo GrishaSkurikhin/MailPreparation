@@ -278,7 +278,8 @@ class DataStorage:
 
     def time_search(self, timefrom: str, timeto: str) -> list[Mail]:
         # Поиск по времени
-        get_mails_query = f"SELECT * FROM {self.v_mails_info} WHERE datetime > %s AND datetime < %s"
+        get_mails_query = f'''SELECT id, reply_id, sender_name, sender_address, reciever_name, reciever_address, reciever_type, subject, body, datetime, priority
+                            FROM {self.v_mails_info} WHERE datetime > %s AND datetime < %s'''
         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
         cursor = self.connection.cursor()
 
@@ -292,14 +293,21 @@ class DataStorage:
         cursor.close()
         return self.__convert_to_mail(rows_mails, rows_files)
     
-    def fulltext_search(self, field: str, search_words: list, type: str) -> list[Mail]:
+    def fulltext_search(self, search_words: list, field: str) -> list[Mail]:
         # Полнотекстовый поиск по ключевым словам: по теме или тексту письма (вложений)
-        query = "SELECT * FROM {} WHERE to_tsvector('russian', {}) @@ to_tsquery('russian', %s)".format(self.view_name, field)
-        self.cursor.execute(query, (' & '.join(search_words),))
-        rows = self.cursor.fetchall()
-        columns = [desc[0] for desc in self.cursor.description]
-        result = [dict(zip(columns, row)) for row in rows]
-        return result
+        query = f'''SELECT id, reply_id, sender_name, sender_address, reciever_name, reciever_address, reciever_type, subject, body, datetime, priority
+                FROM {self.v_mails_info} WHERE to_tsvector('russian', {field}) @@ to_tsquery('russian', %s)'''
+        get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
+
+        cursor = self.connection.cursor()
+        cursor.execute(query, (' & '.join(search_words),))
+        rows_mails = cursor.fetchall()
+        
+        cursor.execute(get_files_query)
+        rows_files = cursor.fetchall()
+
+        cursor.close()
+        return self.__convert_to_mail(rows_mails, rows_files)
 
     def close(self):
         self.connection.close()

@@ -1,3 +1,4 @@
+import re
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt, QTextCodec
 from copy import copy
@@ -93,7 +94,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.modelTree = QtGui.QStandardItemModel()
         self.modelTree.setHorizontalHeaderLabels(['Тема', 'Отправитель', 'Получатель', 'Дата'])
 
-        def CreateMailRow(Mail):
+        def CreateMailRow(mail: Mail):
             subject_item = QtGui.QStandardItem(mail.subject)
             subject_item.setCheckable(True)
             subject_item.setData(mail)
@@ -159,9 +160,6 @@ class mainWindow(QtWidgets.QMainWindow):
         reciviers_comp_list = GetCheckedItems(self.modelRecieversCompanieslist)
         senders_comp_list = GetCheckedItems(self.modelSendersCompanieslist)
 
-        d_reciever_type = {"All": "", "Standart": "standart", "Copy": "Cc", "Hidden copy": "Bcc"}
-        reciever_type = d_reciever_type[self.ui.RecieverTypeComboBox.currentText()]
-
         d_comp_type = {"All": "", "Partners": "partner", "Clients": "client"}
         reciever_comp_type = d_comp_type[self.ui.RecieverCompanyTypeComboBox.currentText()]
         sender_comp_type = d_comp_type[self.ui.SenderCompanyTypeComboBox.currentText()]
@@ -169,16 +167,24 @@ class mainWindow(QtWidgets.QMainWindow):
         d_priority = {"All": "", "Highest": "1 (Highest)", "High":"2 (High)", "Normal": "3 (Normal)", "Low": "4 (Low)", "Lowest": "5 (Lowest)"}
         priority = d_priority[self.ui.PriorityComboBox.currentText()]
 
-        fromTime = self.ui.FromDateTimeEdit.dateTime().toString('yyyy:MM:dd hh:mm:ss')
-        toTime = self.ui.ToDateTimeEdit.dateTime().toString('yyyy:MM:dd hh:mm:ss')
+        fromTime = self.ui.FromDateTimeEdit.dateTime().toString('yyyy-MM-dd hh:mm:ss')
+        toTime = self.ui.ToDateTimeEdit.dateTime().toString('yyyy-MM-dd hh:mm:ss')
 
-        keywordsSubject = self.ui.InSubjectEdit.toPlainText().split(";")
-        keywordsText = self.ui.InTextEdit.toPlainText().split(";")
-
-        fields = ["reciever_email" for i in range(len(reciviers_list))] + \
-                ["sender_email" for i in range(len(senders_list))] + \
+        
+        keywordsSubject = re.split(r'[,\s;]+', self.ui.InSubjectEdit.toPlainText())
+        keywordsText = re.split(r'[,\s;]+', self.ui.InTextEdit.toPlainText())
+        if keywordsSubject[0] == "":
+            keywordsSubject = []
+        if keywordsText[0] == "":
+            keywordsText = []
+        '''
+        fields = ["reciever_address" for i in range(len(reciviers_list))] + \
+                ["sender_address" for i in range(len(senders_list))] + \
                 ["reciever_company_name" for i in range(len(reciviers_comp_list))] + \
                 ["sender_company_name" for i in range(len(senders_comp_list))]
+        '''
+        fields = ["reciever_address" for i in range(len(reciviers_list))] + \
+                ["sender_address" for i in range(len(senders_list))]
         filters = reciviers_list + senders_list + reciviers_comp_list + senders_comp_list
 
         if priority != "":
@@ -193,11 +199,11 @@ class mainWindow(QtWidgets.QMainWindow):
             fields += ["sender_company_type"]
             filters += [sender_comp_type] 
         
-        if self.ui.IntersectionRadioButton.isChecked:
+        if self.ui.UnionRadioButton.isChecked():
             logic_operator = "OR"
-        else:
+        elif self.ui.IntersectionRadioButton.isChecked():
             logic_operator = "AND"
-        data = self.model.Search(fields, filters, fromTime, toTime, keywordsSubject, keywordsText, logic_operator)
+        data = self.model.search(fields, filters, fromTime, toTime, keywordsSubject, keywordsText, logic_operator)
         self.downloadDataTreeView(data)
 
     def DeleteAllFiltersHandler(self):
