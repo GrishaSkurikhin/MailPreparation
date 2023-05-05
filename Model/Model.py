@@ -23,8 +23,8 @@ class Model:
         return len(self.current_eml.msgs)
     
     def search(self, fields: list[str], filters: list[str], 
-               timefrom: str, timeto: str, 
-               keywordsSubject: list[str], keywordsText: list[str], 
+               timefrom: str, timeto: str, isTimeSearch: bool,
+               keywordsSubject: list[str], keywordsText: list[str], keywordsFiles: list[str],
                logic_operator: str) -> list[Mail]:
         def check_condition(func):
             def wrapper(*args, **kwargs):
@@ -43,16 +43,27 @@ class Model:
         @check_condition
         def fulltext_search(keywords, field):
             return self.dataStorage.fulltext_search(keywords, field)
+
+        @check_condition
+        def fulltext_search_files(keywords):
+            return self.dataStorage.fulltext_search_files(keywords)
         
         set1 = set(simple_search(fields, filters))
-        set2 = set(self.dataStorage.time_search(timefrom, timeto))
+        if isTimeSearch:
+            set2 = set(self.dataStorage.time_search(timefrom, timeto))
+        else:
+            if logic_operator == "AND":
+                set2 = set(self.dataStorage.get_all_mails())
+            elif logic_operator == "OR":
+                set2 = set([])
         set3 = set(fulltext_search(keywordsSubject, "subject"))
         set4 = set(fulltext_search(keywordsText, "body"))
+        set5 = set(fulltext_search_files(keywordsFiles))
         
         if logic_operator == "AND":
-            return list(set1 & set2 & set3 & set4)
+            return list(set1 & set2 & set3 & set4 & set5)
         elif logic_operator == "OR":
-            return list(set1 | set2 | set3 | set4)
+            return list(set1 | set2 | set3 | set4 | set5)
 
     def add_mails(self):
         i = 1

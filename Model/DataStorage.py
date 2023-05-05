@@ -307,7 +307,7 @@ class DataStorage:
         return self.__convert_to_mail(rows_mails, rows_files)
     
     def fulltext_search(self, search_words: list, field: str) -> list[Mail]:
-        # Полнотекстовый поиск по ключевым словам: по теме или тексту письма (вложений)
+        # Полнотекстовый поиск по ключевым словам: по теме или тексту письма
         query = f'''SELECT id, reply_id, 
                                sender_name, sender_address, sender_company_name, sender_company_type, 
                                reciever_name, reciever_address, reciever_type, reciever_company_name, reciever_company_type, 
@@ -325,5 +325,32 @@ class DataStorage:
         cursor.close()
         return self.__convert_to_mail(rows_mails, rows_files)
 
+    def fulltext_search_files(self, search_words: list) -> list[Mail]:
+         # Полнотекстовый поиск по ключевым словам во вложениях
+         query = f'''SELECT id, reply_id, 
+                               sender_name, sender_address, sender_company_name, sender_company_type, 
+                               reciever_name, reciever_address, reciever_type, reciever_company_name, reciever_company_type, 
+                               subject, body, datetime, priority
+                     FROM {self.v_mails_info}'''
+         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}
+                                WHERE to_tsvector('russian', text) @@ to_tsquery('russian', %s)'''
+        
+         cursor = self.connection.cursor()
+         cursor.execute(query)
+         rows_mails = cursor.fetchall()
+
+         cursor.execute(get_files_query, (' & '.join(search_words),))
+         rows_files = cursor.fetchall()
+
+         cursor.close()
+         mails_list = self.__convert_to_mail(rows_mails, rows_files)
+         new_mail_list = []
+         for mail in mails_list:
+             if len(mail.files) != 0:
+                 new_mail_list.append(mail)
+
+         return new_mail_list
+
     def close(self):
         self.connection.close()
+        

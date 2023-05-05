@@ -169,14 +169,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
         fromTime = self.ui.FromDateTimeEdit.dateTime().toString('yyyy-MM-dd hh:mm:ss')
         toTime = self.ui.ToDateTimeEdit.dateTime().toString('yyyy-MM-dd hh:mm:ss')
+        isTimeSearch = self.ui.IsTimeSearchCheckBox.isChecked()
 
-        
-        keywordsSubject = re.split(r'[,\s;]+', self.ui.InSubjectEdit.toPlainText())
-        keywordsText = re.split(r'[,\s;]+', self.ui.InTextEdit.toPlainText())
-        if keywordsSubject[0] == "":
-            keywordsSubject = []
-        if keywordsText[0] == "":
-            keywordsText = []
+        keywordsSubject = re.findall(r'\b\w+\b', re.sub(r'[^\w\s]+', '', self.ui.InSubjectEdit.toPlainText()))
+        keywordsText = re.findall(r'\b\w+\b', re.sub(r'[^\w\s]+', '', self.ui.InTextEdit.toPlainText()))
+        keywordsFiles = re.findall(r'\b\w+\b', re.sub(r'[^\w\s]+', '', self.ui.InFilesEdit.toPlainText()))
 
         fields = ["reciever_address" for i in range(len(reciviers_list))] + \
                 ["sender_address" for i in range(len(senders_list))] + \
@@ -201,7 +198,7 @@ class mainWindow(QtWidgets.QMainWindow):
             logic_operator = "OR"
         elif self.ui.IntersectionRadioButton.isChecked():
             logic_operator = "AND"
-        data = self.model.search(fields, filters, fromTime, toTime, keywordsSubject, keywordsText, logic_operator)
+        data = self.model.search(fields, filters, fromTime, toTime, isTimeSearch, keywordsSubject, keywordsText, keywordsFiles, logic_operator)
         self.downloadDataTreeView(data)
 
     def DeleteAllFiltersHandler(self):
