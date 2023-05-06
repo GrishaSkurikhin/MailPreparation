@@ -88,7 +88,7 @@ class DataStorage:
                                           user=connection_settings["user"], 
                                           password=connection_settings["password"])
             cursor = connection.cursor()
-            with open(dump_path, 'r') as f:
+            with open(dump_path, 'r', encoding="utf-8") as f:
                 sql = f.read()
             cursor.execute(sql)
             cursor.close()
