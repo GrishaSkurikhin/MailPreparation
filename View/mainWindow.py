@@ -36,6 +36,11 @@ class MainWindow(QtWidgets.QMainWindow):
         QTextCodec.setCodecForLocale(QTextCodec.codecForName("UTF-8"))
         qdarktheme.setup_theme("light")
 
+        self.modelTree = None
+        self.modelRecieverslist = None
+        self.modelSenderslist = None
+        self.modelRecieversCompanieslist = None
+        self.modelSendersCompanieslist = None
         self.ui.ToDateTimeEdit.setDateTime(QDateTime.currentDateTime())
 
         # Обработчики
@@ -53,7 +58,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.Companies.triggered.connect(self.CompaniesHandler)
 
         # Загрузка данных
-        self.UpdateData()
+        if self.model.dataStorage.check_connection(self.model.config.get_data()["database"]):
+            self.model.dataStorage.connect(self.model.config.get_data()["database"])
+            self.UpdateData()
+        else:
+            self.ShowWarning("Не установлено подключение к базе данных. Проверьте параметры подключения")
 
     def ShowError(self, error: str):
         self.error_msg = QtWidgets.QMessageBox()
@@ -159,7 +168,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.InformationBrowser.append(f"По пути {dir_path} найдено {mail_count} писем\n")
 
     def ImportHandler(self):
-        if self.model.dataStorage.check_connection(self.model.config.get_data()["database"]) is not True:
+        if self.model.dataStorage.connection is None:
             self.ShowError("Нет подключения к базе данных")
             return
         if self.model.current_eml is None:
@@ -184,10 +193,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     checked_items.append(model.itemFromIndex(index).data())
             return checked_items
         
-        reciviers_list = GetCheckedItems(self.modelRecieverslist)
-        senders_list = GetCheckedItems(self.modelSenderslist)
-        reciviers_comp_list = GetCheckedItems(self.modelRecieversCompanieslist)
-        senders_comp_list = GetCheckedItems(self.modelSendersCompanieslist)
+        reciviers_list = GetCheckedItems(self.modelRecieverslist) if self.modelRecieverslist is not None else []
+        senders_list = GetCheckedItems(self.modelSenderslist) if self.modelSenderslist is not None else []
+        reciviers_comp_list = GetCheckedItems(self.modelRecieversCompanieslist) if self.modelRecieversCompanieslist is not None else []
+        senders_comp_list = GetCheckedItems(self.modelSendersCompanieslist) if self.modelSendersCompanieslist is not None else []
 
         d_comp_type = {"All": "", "Partners": "partner", "Clients": "client"}
         reciever_comp_type = d_comp_type[self.ui.RecieverCompanyTypeComboBox.currentText()]
@@ -229,9 +238,9 @@ class MainWindow(QtWidgets.QMainWindow):
             logic_operator = "AND"
         try:
             data = self.model.search(fields, filters, fromTime, toTime, isTimeSearch, keywordsSubject, keywordsText, keywordsFiles, logic_operator)
+            self.downloadDataTreeView(data)
         except Exception as error:
             self.ShowError(str(error))
-        self.downloadDataTreeView(data)
 
     def DeleteAllFiltersHandler(self):
         self.ui.ToDateTimeEdit.setDateTime(QDateTime.currentDateTime())
@@ -242,7 +251,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.SenderCompanyTypeComboBox.setCurrentIndex(0)
         self.ui.RecieverCompanyTypeComboBox.setCurrentIndex(0)
         self.ui.PriorityComboBox.setCurrentIndex(0)
-        self.UpdateData()
+        try:
+            self.UpdateData()
+        except:
+            pass
     
     def TreeViewMenuHandler(self, pos):
         indexes = self.ui.MailsTreeView.selectedIndexes()
@@ -268,6 +280,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.TraverseTreeview(mails, child_index)
 
     def ExportHandler(self, typ):
+        if self.modelTree is None:
+            self.ShowWarning("Не выбрано ни одно письмо")
+            return
         mails = []
         for row in range(self.modelTree.rowCount()):
             self.TraverseTreeview(mails, self.modelTree.index(row, 0), typ)
@@ -299,5 +314,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dbWindow.show()
 
     def CompaniesHandler(self):
+        if self.model.dataStorage.connection is None:
+            self.ShowError("Нет подключения к базе данных")
+            return
         self.companiesWindow = CompaniesWindow(self.model, self)
         self.companiesWindow.show()

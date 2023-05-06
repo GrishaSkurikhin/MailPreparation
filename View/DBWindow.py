@@ -18,7 +18,22 @@ class DBWindow(QtWidgets.QWidget):
         self.companiesWindow.show()
 
     def CreateDBHandler(self):
-        self.model.CreateDB()
+        try:
+            self.model.create_db()
+            self.ui.InformationBrowser.append("База данных успешно создана")
+            try:
+                self.model.dataStorage.connect(self.model.config.get_data()["database"])
+                self.ui.InformationBrowser.append("Подключение к базе данных установлено")
+            except Exception as error:
+                self.ui.InformationBrowser.append("Не удалось подключиться к базе данных: " + str(error))
+        except Exception as error:
+            self.ui.InformationBrowser.append("База данных не создана: " + str(error))
 
     def CheckConnectionHandler(self):
-        pass
+        try:
+            if self.model.dataStorage.connection is not None:
+                self.ui.InformationBrowser.append("Подключение установлено")
+            else:
+                self.ui.InformationBrowser.append("Подключение не установлено")
+        except:
+            self.ui.InformationBrowser.append("Подключение не установлено")

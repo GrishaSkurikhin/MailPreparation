@@ -17,6 +17,11 @@ class ConfigWindow(QtWidgets.QWidget):
         data["port"] = self.ui.PortEdit.text()
         data["user"] = self.ui.UserEdit.text()
         data["password"] = self.ui.PasswordEdit.text()
-        self.model.SetDBConfig(data)
+        self.model.config.set_data(data)
         self.ui.OutputLabel.setText("Данные загружены\nв config")
         self.DBWindow.ui.InformationBrowser.append("Данные конфига обновлены")
+        try:
+            self.model.dataStorage.connect(self.model.config.get_data()["database"])
+            self.DBWindow.ui.InformationBrowser.append("Подключение к базе данных установлено")
+        except Exception as error:
+            self.DBWindow.ui.InformationBrowser.append("Не удалось подключиться к базе данных: " + str(error))

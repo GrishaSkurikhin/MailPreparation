@@ -8,6 +8,8 @@ from Model.Mail import *
 def operation_handler(func):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
+            if self.connection is None:
+                raise DSConnectionError()
             cursor = self.connection.cursor()
             try:
                 result = func(self, cursor, *args, **kwargs)
@@ -86,7 +88,6 @@ class DataStorage:
                                           user=connection_settings["user"], 
                                           password=connection_settings["password"])
             cursor = connection.cursor()
-            cursor.execute("CREATE database {}".format(self.db_name))
             with open(dump_path, 'r') as f:
                 sql = f.read()
             cursor.execute(sql)

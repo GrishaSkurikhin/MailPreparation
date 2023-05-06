@@ -12,11 +12,10 @@ class Model:
         self.current_eml = None
         self.dataStorage = DataStorage()
         self.config = Config("config.ini")
-        self.dataStorage.connect(self.config.get_data()["database"])
-    
+
     def create_db(self) -> None:
-        if not self.dataStorage.is_exist:
-            self.dataStorage.create(self.config.get_data(), self.DUMP_PATH)
+        #if not self.dataStorage.is_exist:
+        self.dataStorage.create(self.config.get_data()["database"], self.DUMP_PATH)
     
     def set_current_eml(self, email_path: str) -> int:
         self.current_eml = Email(Path(email_path))
