@@ -44,7 +44,7 @@ class TextWindow(QtWidgets.QMainWindow):
         self.ui.textEdit.append(f"Отправитель:\n{mail.sender['name']} ({mail.sender['email']}) - {mail.sender['company_name']} ({mail.sender['company_type']})\n")
         recievers = ""
         for reciever in mail.recievers:
-            recievers +=  f"{reciever['name']} ({reciever['email']}) [{reciever['type']}] - - {reciever['company_name']} ({reciever['company_type']})\n"
+            recievers +=  f"{reciever['name']} ({reciever['email']}) [{reciever['type']}] - {reciever['company_name']} ({reciever['company_type']})\n"
         self.ui.textEdit.append("Получатели:\n" + recievers)
         self.ui.textEdit.append(f"Приоритет: {mail.priority}\n")
         self.ui.textEdit.append("-"*150 + f"\n {mail.body}")

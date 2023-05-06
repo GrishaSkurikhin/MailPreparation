@@ -68,36 +68,42 @@ class Model:
     def add_mails(self):
         i = 1
         for filename, mail in self.current_eml.get_mails():
-            if isinstance(mail, Exception):
-                yield mail, i
-            else:
-                try:
-                    self.dataStorage.add_mail(mail)
-                    yield f"Письмо '{filename}' успешно добавлено", i
-                except Exception as error:
-                    yield error, i
+            try:
+                self.dataStorage.add_mail(mail)
+                yield f"Письмо '{filename}' успешно добавлено", i
+            except Exception as error:
+                yield str(error) + f': "{filename}"', i
             i += 1
 
     def export_csv(self, mails: list[Mail], filename: str) -> None:
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-            dict_mail_list = [mail.get_export_dict() for mail in mails]
-            writer = csv.DictWriter(csvfile, fieldnames=dict_mail_list[0].keys())
-            writer.writeheader()
-            for row in dict_mail_list:
-                writer.writerow(row)
+        try:
+            with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+                dict_mail_list = [mail.get_export_dict() for mail in mails]
+                writer = csv.DictWriter(csvfile, fieldnames=dict_mail_list[0].keys())
+                writer.writeheader()
+                for row in dict_mail_list:
+                    writer.writerow(row)
+        except:
+            raise Exception("Ошибка при экспорте csv")
     
     def export_txt(self, mails: list[Mail], path: str) -> None:
-        i = 1
-        for mail in mails:
-            files_text = ""
-            for file in mail.files:
-                files_text += file["text"] + "\n"
-            if mail.body.isspace() and files_text.isspace():
-                continue
-            with open(os.path.join(path, str(i) + ".txt"), 'w', newline='', encoding='utf-8') as txtfile:
-                txtfile.write(mail.body + "\n" + files_text)
-            i += 1
+        try:
+            i = 1
+            for mail in mails:
+                files_text = ""
+                for file in mail.files:
+                    files_text += file["text"] + "\n"
+                if mail.body.isspace() and files_text.isspace():
+                    continue
+                with open(os.path.join(path, str(i) + ".txt"), 'w', newline='', encoding='utf-8') as txtfile:
+                    txtfile.write(mail.body + "\n" + files_text)
+                i += 1
+        except:
+            raise Exception("Ошибка при экспорте txt")
     
     def export_json(self, mails: list[Mail], filename: str) -> None:
-        with open(filename, 'w', newline='', encoding='utf-8') as jsonfile:
-            json.dump([mail.get_export_dict() for mail in mails], jsonfile, ensure_ascii=False, indent=4)
+        try:
+            with open(filename, 'w', newline='', encoding='utf-8') as jsonfile:
+                json.dump([mail.get_export_dict() for mail in mails], jsonfile, ensure_ascii=False, indent=4)
+        except:
+            raise Exception("Ошибка при экспорте json")

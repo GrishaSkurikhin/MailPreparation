@@ -5,11 +5,12 @@ from Model.Model import Model
 from View.ui.companiesWindow_ui import Ui_companiesWindow
 
 class CompaniesWindow(QtWidgets.QWidget):
-    def __init__(self, model: Model):
+    def __init__(self, model: Model, main_window: QtWidgets.QMainWindow):
         super(CompaniesWindow, self).__init__()
         self.ui = Ui_companiesWindow()
         self.ui.setupUi(self)
         self.model = model
+        self.main_window = main_window
 
         self.ui.addCompanyButton.clicked.connect(self.AddCompanyHandler)
         self.ui.addDomainButton.clicked.connect(self.AddDomainHandler)
@@ -23,6 +24,7 @@ class CompaniesWindow(QtWidgets.QWidget):
         self.DownloadTreeView(companies)
         self.ui.CompanyDomainComboBox.clear()
         self.SetComboBoxCompanies(companies)
+        self.main_window.UpdateData()
 
     def DownloadTreeView(self, companies: list[dict]):
         self.modelTree = QtGui.QStandardItemModel()
@@ -52,14 +54,20 @@ class CompaniesWindow(QtWidgets.QWidget):
     def AddCompanyHandler(self):
         company_name = self.ui.companyNameEdit.text()
         company_type = self.ui.companyTypeComboBox.currentText()
-        self.model.dataStorage.add_company(company_name, company_type)
+        try:
+            self.model.dataStorage.add_company(company_name, company_type)
+        except Exception as error:
+            self.main_window.ShowError(str(error))
         self.UpdateInfo()
     
     def AddDomainHandler(self):
         domain_name = self.ui.DomainEdit.text()
         index = self.ui.CompanyDomainComboBox.currentIndex()
         company_id = self.ui.CompanyDomainComboBox.itemData(index).get("id", None)
-        self.model.dataStorage.add_domain(domain_name, company_id)
+        try:
+            self.model.dataStorage.add_domain(domain_name, company_id)
+        except Exception as error:
+            self.main_window.ShowError(str(error))
         self.UpdateInfo()
 
     def TreeViewMenuHandler(self, pos):
@@ -74,9 +82,12 @@ class CompaniesWindow(QtWidgets.QWidget):
                 if not index.isValid():
                     return
                 data = self.modelTree.itemFromIndex(index).data()
-                if data[0] == "company":
-                    self.model.dataStorage.del_company(data[1])
-                elif data[0] == "domain":
-                    self.model.dataStorage.del_domain(data[1])
+                try:
+                    if data[0] == "company":
+                        self.model.dataStorage.del_company(data[1])
+                    elif data[0] == "domain":
+                        self.model.dataStorage.del_domain(data[1])
+                except Exception as error:
+                    self.main_window.ShowError(str(error))
                 self.UpdateInfo()
                 

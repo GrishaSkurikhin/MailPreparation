@@ -1,9 +1,34 @@
+import functools
 import psycopg2
 from pathlib import Path
 
 from Model.Exceptions import DSConnectionError, DSInternalError, QueryError, UniqueError, UndefinedError
 from Model.Mail import *
 
+def operation_handler(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            cursor = self.connection.cursor()
+            try:
+                result = func(self, cursor, *args, **kwargs)
+                return result
+            except psycopg2.OperationalError:
+                raise DSConnectionError()
+            except psycopg2.ProgrammingError:
+                self.connection.rollback()
+                raise QueryError()
+            except UniqueError as error:
+                 self.connection.rollback()
+                 raise error
+            except (psycopg2.InternalError, psycopg2.DatabaseError):
+                raise DSInternalError()
+            except Exception:
+                self.connection.rollback()
+                raise UndefinedError()
+            finally:
+                self.connection.commit()
+                cursor.close()
+        return wrapper
 
 class DataStorage:
     def __init__(self):
@@ -18,7 +43,7 @@ class DataStorage:
         self.v_mails_info = 'public."v_mails_info"'
 
         self.connection = None
-     
+    
     def is_exist(self, connection_settings: dict) -> bool:
         try:
             connection = psycopg2.connect(host=connection_settings["host"], 
@@ -50,11 +75,7 @@ class DataStorage:
              result = cursor.fetchone()
              cursor.close()
              connection.close()
-         except psycopg2.OperationalError:
-             raise DSConnectionError()
-         except (psycopg2.InternalError, psycopg2.DatabaseError):
-             raise DSInternalError()
-         except Exception:
+         except Exception as error:
              return False
          return result[0] == 1
     
@@ -74,7 +95,7 @@ class DataStorage:
         except psycopg2.OperationalError:
             raise DSConnectionError()
         except psycopg2.ProgrammingError:
-            raise QueryError("база данных уже существует или файл dump неисправен")
+            raise QueryError()
         except (psycopg2.InternalError, psycopg2.DatabaseError):
             raise DSInternalError()
 
@@ -90,7 +111,8 @@ class DataStorage:
         except (psycopg2.InternalError, psycopg2.DatabaseError):
             raise DSInternalError()
         
-    def add_mail(self, mail: Mail) -> None:
+    @operation_handler
+    def add_mail(self, cursor, mail: Mail) -> None:
             insert_adress_query = f'''INSERT INTO {self.t_adresses} (address, name)
                                       VALUES (%s, %s)
                                       ON CONFLICT (address) DO UPDATE SET address = EXCLUDED.address
@@ -101,10 +123,8 @@ class DataStorage:
                                        VALUES (%s, %s, %s, %s, %s, %s, %s)'''
             insert_file_query = f'''INSERT INTO {self.t_files} (name, text, bytes, message_id)
                                     VALUES (%s, %s, %s, %s)'''
-            
-            try:
-                cursor = self.connection.cursor()
 
+            try:
                 # вставка отправителя
                 if mail.sender["name"] is None and mail.sender["email"] is None:
                     sender_adress_id = None
@@ -123,104 +143,70 @@ class DataStorage:
                 # вставка вложений
                 for file in mail.files:
                     cursor.execute(insert_file_query, (file["filename"], file["text"], file["bytes"], mail.id,))
-
-                self.connection.commit()
-
             except psycopg2.errors.UniqueViolation:
-                 self.connection.rollback()
-                 raise UniqueError("mail")
-            except psycopg2.ProgrammingError:
-                self.connection.rollback()
-                raise QueryError("при вставке письма")
-            except Exception as error:
-                 self.connection.rollback()
-                 raise UndefinedError("вставка письма " + str(error))
-            finally:
-                 cursor.close()
+                raise UniqueError("mail")
                  
-
-    def add_company(self, name: str, type: str) -> None:
+    @operation_handler
+    def add_company(self, cursor, name: str, type: str) -> None:
         try:
             cursor = self.connection.cursor()
             query = f"INSERT INTO {self.t_companies} (name, type) VALUES (%s, %s)"
             cursor.execute(query, (name, type,))
             self.connection.commit()
         except psycopg2.errors.UniqueViolation:
-            self.connection.rollback()
             raise UniqueError("company")
-        finally:
-            cursor.close()
-        
-    def add_domain(self, domain: str, company_id: str) -> None:
+    
+    @operation_handler
+    def add_domain(self, cursor, domain: str, company_id: str) -> None:
         try:
             cursor = self.connection.cursor()
             query = f"INSERT INTO {self.t_domains} (domain, company_id) VALUES (%s, %s)"
             cursor.execute(query, (domain, company_id,))
             self.connection.commit()
         except psycopg2.errors.UniqueViolation:
-            self.connection.rollback()
             raise UniqueError("domain")
-        finally:
-            cursor.close()
     
-    def del_mail(self, id: str) -> None:
-         cursor = self.connection.cursor()
-         query = f"DELETE FROM {self.t_messages} WHERE id = %s"
-         cursor.execute(query, (id,))
-         self.connection.commit()
-         cursor.close()
+    @operation_handler
+    def del_mail(self, cursor, id: str) -> None:
+        query = f"DELETE FROM {self.t_messages} WHERE id = %s"
+        cursor.execute(query, (id,))
 
-    def del_company(self, id: str) -> None:
-         cursor = self.connection.cursor()
+    @operation_handler
+    def del_company(self, cursor, id: str) -> None:
          query = f"DELETE FROM {self.t_companies} WHERE id = %s"
          cursor.execute(query, (id,))
-         self.connection.commit()
-         cursor.close()
 
-    def del_domain(self, id: str) -> None:
-         cursor = self.connection.cursor()
+    @operation_handler
+    def del_domain(self, cursor, id: str) -> None:
          query = f"DELETE FROM {self.t_domains} WHERE id = %s"
          cursor.execute(query, (id,))
-         self.connection.commit()
-         cursor.close()
 
-    def get_users(self) -> list[dict]:
-         cursor = self.connection.cursor()
+    @operation_handler
+    def get_users(self, cursor) -> list[dict]:
          query = f"SELECT address, name FROM {self.t_adresses}"
          cursor.execute(query)
-         rows = cursor.fetchall()
-         cursor.close()
+         return [{"email": address, "name": name} for address, name in cursor.fetchall()]
 
-         rows = [{"email": address, "name": name} for address, name in rows]
-         return rows
-
-    def get_companies(self) -> list[dict]:
-         cursor = self.connection.cursor()
+    @operation_handler
+    def get_companies(self, cursor) -> list[dict]:
          query = f"SELECT name, type FROM {self.t_companies}"
          cursor.execute(query)
-         rows = cursor.fetchall()
-         cursor.close()
-         rows = [{"name": name, "type": type} for name, type in rows]
-         return rows
+         return [{"name": name, "type": type} for name, type in cursor.fetchall()]
     
-    def get_companies_domains(self) -> list[dict]:
-         cursor = self.connection.cursor()
+    @operation_handler
+    def get_companies_domains(self, cursor) -> list[dict]:
          query = f'''SELECT company_id, company_name, company_type, array_agg(ARRAY[domain_id::text, domain]) AS domains
                      FROM {self.v_companies_domains}
                      GROUP BY company_id, company_name, company_type;'''
          cursor.execute(query)
-         rows = cursor.fetchall()
-         cursor.close()
+         return [{"id": id, "name": name, "type": type, "domains": domains} for id, name, type, domains in cursor.fetchall()]
 
-         rows = [{"id": id, "name": name, "type": type, "domains": domains} for id, name, type, domains in rows]
-         return rows
-
-    def get_file_by_id(self, id: str) -> bytes:
-        cursor = self.connection.cursor()
+    @operation_handler
+    def get_file_by_id(self, cursor, id: str) -> bytes:
         query = f"SELECT bytes FROM {self.t_files} WHERE id = %s"
         cursor.execute(query, (id,))
         row = cursor.fetchall()
-        cursor.close()
+
         return bytes(row[0][0])
     
     def __convert_to_mail(self, rows_mails: list[tuple], rows_files: list[tuple]) -> list[Mail]:
@@ -248,14 +234,14 @@ class DataStorage:
 
         return mail_list
     
-    def get_all_mails(self) -> list[Mail]:
+    @operation_handler
+    def get_all_mails(self, cursor) -> list[Mail]:
          get_mails_query = f'''SELECT id, reply_id, 
                                sender_name, sender_address, sender_company_name, sender_company_type, 
                                reciever_name, reciever_address, reciever_type, reciever_company_name, reciever_company_type, 
                                subject, body, datetime, priority
                                FROM {self.v_mails_info}'''
          get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
-         cursor = self.connection.cursor()
 
          cursor.execute(get_mails_query)
          rows_mails = cursor.fetchall()
@@ -263,10 +249,10 @@ class DataStorage:
          cursor.execute(get_files_query)
          rows_files = cursor.fetchall()
 
-         cursor.close()
          return self.__convert_to_mail(rows_mails, rows_files)
 
-    def simple_search(self, fields: list, filters: list, logic_operator: str) -> list[Mail]:
+    @operation_handler
+    def simple_search(self, cursor, fields: list, filters: list, logic_operator: str) -> list[Mail]:
         # Поиск по одному фильтру: адресу получателя, отправителя, компании, типу компании, приоритету
         fields_list = [f"{field} = %s" for field in fields]
         get_mails_query = f'''SELECT id, reply_id, 
@@ -275,7 +261,6 @@ class DataStorage:
                                subject, body, datetime, priority
                               FROM {self.v_mails_info} WHERE {f" {logic_operator} ".join(fields_list)}'''
         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
-        cursor = self.connection.cursor()
 
         cursor.execute(get_mails_query, filters)
         rows_mails = cursor.fetchall()
@@ -283,10 +268,10 @@ class DataStorage:
         cursor.execute(get_files_query)
         rows_files = cursor.fetchall()
 
-        cursor.close()
         return self.__convert_to_mail(rows_mails, rows_files)
 
-    def time_search(self, timefrom: str, timeto: str) -> list[Mail]:
+    @operation_handler
+    def time_search(self, cursor, timefrom: str, timeto: str) -> list[Mail]:
         # Поиск по времени
         get_mails_query = f'''SELECT id, reply_id, 
                                sender_name, sender_address, sender_company_name, sender_company_type, 
@@ -294,19 +279,17 @@ class DataStorage:
                                subject, body, datetime, priority
                             FROM {self.v_mails_info} WHERE datetime > %s AND datetime < %s'''
         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
-        cursor = self.connection.cursor()
 
         cursor.execute(get_mails_query, [timefrom, timeto])
         rows_mails = cursor.fetchall()
 
-
         cursor.execute(get_files_query)
         rows_files = cursor.fetchall()
 
-        cursor.close()
         return self.__convert_to_mail(rows_mails, rows_files)
     
-    def fulltext_search(self, search_words: list, field: str) -> list[Mail]:
+    @operation_handler
+    def fulltext_search(self, cursor, search_words: list, field: str) -> list[Mail]:
         # Полнотекстовый поиск по ключевым словам: по теме или тексту письма
         query = f'''SELECT id, reply_id, 
                                sender_name, sender_address, sender_company_name, sender_company_type, 
@@ -315,17 +298,16 @@ class DataStorage:
                 FROM {self.v_mails_info} WHERE to_tsvector('russian', {field}) @@ to_tsquery('russian', %s)'''
         get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}'''
 
-        cursor = self.connection.cursor()
         cursor.execute(query, (' & '.join(search_words),))
         rows_mails = cursor.fetchall()
         
         cursor.execute(get_files_query)
         rows_files = cursor.fetchall()
 
-        cursor.close()
         return self.__convert_to_mail(rows_mails, rows_files)
 
-    def fulltext_search_files(self, search_words: list) -> list[Mail]:
+    @operation_handler
+    def fulltext_search_files(self, cursor, search_words: list) -> list[Mail]:
          # Полнотекстовый поиск по ключевым словам во вложениях
          query = f'''SELECT id, reply_id, 
                                sender_name, sender_address, sender_company_name, sender_company_type, 
@@ -335,14 +317,12 @@ class DataStorage:
          get_files_query = f'''SELECT id, name, text, message_id FROM {self.t_files}
                                 WHERE to_tsvector('russian', text) @@ to_tsquery('russian', %s)'''
         
-         cursor = self.connection.cursor()
          cursor.execute(query)
          rows_mails = cursor.fetchall()
 
          cursor.execute(get_files_query, (' & '.join(search_words),))
          rows_files = cursor.fetchall()
 
-         cursor.close()
          mails_list = self.__convert_to_mail(rows_mails, rows_files)
          new_mail_list = []
          for mail in mails_list:
@@ -352,5 +332,6 @@ class DataStorage:
          return new_mail_list
 
     def close(self):
-        self.connection.close()
+        if self.connection is not None:
+            self.connection.close()
         

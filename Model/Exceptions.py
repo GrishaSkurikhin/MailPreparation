@@ -29,11 +29,8 @@ class DSInternalError(Exception):
         return "Ошибка на стороне сервера базы данных"
 
 class QueryError(Exception):
-    def __init__(self, add_info: str) -> None:
-        self.add_info = add_info
-
     def __str__(self) -> str:
-        return "Ошибка в выполнении запроса к базе данных: " + self.add_info
+        return "Ошибка при выполнении запроса к базе данных"
 
 class UniqueError(Exception):
     def __init__(self, object: str) -> None:
@@ -48,8 +45,5 @@ class UniqueError(Exception):
             return "Домен с таким именем для данной компании уже существует"
 
 class UndefinedError(Exception):
-    def __init__(self, action: str) -> None:
-        self.action = action
-
     def __str__(self) -> str:
-        return "Неизвестная ошибка при: " + self.action
+        return "Неизвестная ошибка при"

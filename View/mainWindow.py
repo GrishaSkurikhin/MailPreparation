@@ -1,6 +1,6 @@
 import re
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import Qt, QTextCodec
+from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import Qt, QTextCodec, QDateTime
 from copy import copy
 import qdarktheme
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -27,14 +27,16 @@ class ImportThread(QThread):
             self.progress.emit(round(cur_pos/len(self.model.current_eml.msgs)*100))
         self.finished.emit()
 
-class mainWindow(QtWidgets.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
-        super(mainWindow, self).__init__()
+        super(MainWindow, self).__init__()
         self.model = Model()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         QTextCodec.setCodecForLocale(QTextCodec.codecForName("UTF-8"))
         qdarktheme.setup_theme("light")
+
+        self.ui.ToDateTimeEdit.setDateTime(QDateTime.currentDateTime())
 
         # Обработчики
         self.ui.ChooseFileButton.clicked.connect(self.ChooseFileHandler)
@@ -51,18 +53,40 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.Companies.triggered.connect(self.CompaniesHandler)
 
         # Загрузка данных
-        users = self.model.dataStorage.get_users()
-        companies = self.model.dataStorage.get_companies()
-        mails = self.model.dataStorage.get_all_mails()
+        self.UpdateData()
+
+    def ShowError(self, error: str):
+        self.error_msg = QtWidgets.QMessageBox()
+        self.error_msg.setIcon(QtWidgets.QMessageBox.Critical)
+        self.error_msg.setText(error)
+        self.error_msg.setWindowTitle("Ошибка")
+        self.error_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.error_msg.exec_()
+    
+    def ShowWarning(self, warning: str) -> int:
+        self.warning_msg = QtWidgets.QMessageBox()
+        self.warning_msg.setIcon(QtWidgets.QMessageBox.Warning)
+        self.warning_msg.setText(warning)
+        self.warning_msg.setWindowTitle("Предупреждение")
+        self.warning_msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+        return self.warning_msg.exec_()
+
+    '''
+    Загрузка данных
+    '''
+
+    def UpdateData(self):
+        try:
+            users = self.model.dataStorage.get_users()
+            companies = self.model.dataStorage.get_companies()
+            mails = self.model.dataStorage.get_all_mails()
+        except Exception as error:
+            self.ShowError(str(error))
         self.downloadDataTreeView(mails)
         self.downloadListView(users, "recievers")
         self.downloadListView(users, "senders")
         self.downloadListView(companies, "recieverCompanies")
         self.downloadListView(companies, "sendersCompanies")
-
-    '''
-    Загрузка данных
-    '''
 
     def downloadListView(self, users: list[dict], type: str) -> None:
         model = QtGui.QStandardItemModel()
@@ -135,6 +159,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.InformationBrowser.append(f"По пути {dir_path} найдено {mail_count} писем\n")
 
     def ImportHandler(self):
+        if self.model.dataStorage.check_connection(self.model.config.get_data()["database"]) is not True:
+            self.ShowError("Нет подключения к базе данных")
+            return
+        if self.model.current_eml is None:
+            self.ShowError("Не выбрана директория с письмами")
+            return
         self.import_thread = ImportThread(self.model)
         self.import_thread.info.connect(self.ui.InformationBrowser.append)
         self.import_thread.progress.connect(self.ui.progressBar.setValue)
@@ -142,8 +172,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.import_thread.start()
 
     def import_finished(self):
-        mails = self.model.dataStorage.get_all_mails()
-        self.downloadDataTreeView(mails)
+        self.UpdateData()
         
     def SearchHandler(self):
         def GetCheckedItems(model: QtGui.QStandardItemModel):
@@ -198,12 +227,22 @@ class mainWindow(QtWidgets.QMainWindow):
             logic_operator = "OR"
         elif self.ui.IntersectionRadioButton.isChecked():
             logic_operator = "AND"
-        data = self.model.search(fields, filters, fromTime, toTime, isTimeSearch, keywordsSubject, keywordsText, keywordsFiles, logic_operator)
+        try:
+            data = self.model.search(fields, filters, fromTime, toTime, isTimeSearch, keywordsSubject, keywordsText, keywordsFiles, logic_operator)
+        except Exception as error:
+            self.ShowError(str(error))
         self.downloadDataTreeView(data)
 
     def DeleteAllFiltersHandler(self):
-        mails = self.model.dataStorage.get_all_mails()
-        self.downloadDataTreeView(mails)
+        self.ui.ToDateTimeEdit.setDateTime(QDateTime.currentDateTime())
+        self.ui.FromDateTimeEdit.setDateTime(QDateTime(QtCore.QDate(2000, 1, 1), QtCore.QTime(0, 0, 0)))
+        self.ui.InSubjectEdit.setText("")
+        self.ui.InTextEdit.setText("")
+        self.ui.InFilesEdit.setText("")
+        self.ui.SenderCompanyTypeComboBox.setCurrentIndex(0)
+        self.ui.RecieverCompanyTypeComboBox.setCurrentIndex(0)
+        self.ui.PriorityComboBox.setCurrentIndex(0)
+        self.UpdateData()
     
     def TreeViewMenuHandler(self, pos):
         indexes = self.ui.MailsTreeView.selectedIndexes()
@@ -214,9 +253,11 @@ class mainWindow(QtWidgets.QMainWindow):
             action = menu.exec_(self.ui.MailsTreeView.viewport().mapToGlobal(pos))
             if action == delete_action:
                 id = self.modelTree.itemFromIndex(self.modelTree.index(indexes[0].row(), 0)).data().id
-                self.model.dataStorage.del_mail(id)
-                mails = self.model.dataStorage.get_all_mails()
-                self.downloadDataTreeView(mails)
+                try:
+                    self.model.dataStorage.del_mail(id)
+                except Exception as error:
+                    self.ShowError(str(error))
+                self.UpdateData()
     
     def TraverseTreeview(self, mails, parent_index, type):
         check_state = self.modelTree.data(parent_index, Qt.CheckStateRole)
@@ -226,30 +267,37 @@ class mainWindow(QtWidgets.QMainWindow):
             child_index = self.modelTree.index(row, 0, parent_index)
             self.TraverseTreeview(mails, child_index)
 
-    def ExportHandler(self, type):
+    def ExportHandler(self, typ):
         mails = []
         for row in range(self.modelTree.rowCount()):
-            self.TraverseTreeview(mails, self.modelTree.index(row, 0), type)
+            self.TraverseTreeview(mails, self.modelTree.index(row, 0), typ)
+        if len(mails) == 0:
+            if self.ShowWarning("Не выбрано ни одно письмо") != QtWidgets.QMessageBox.Ok:
+                return
         format = self.ui.ChooseFormatComboBox.currentText()
-        if format == "csv":
-            file_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Сохранить файл", "", "CSV Files (*.csv);;All Files (*)")
-            self.model.export_csv(mails, file_path)
-            self.ui.InformationBrowser.append("Письма успешно экспортированы в файл: " + file_path)
-        elif format == "txt":
-            folder_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Выберите папку", ".")
-            self.model.export_txt(mails, folder_path)
-            self.ui.InformationBrowser.append("Письма успешно экспортированы в папку: " + folder_path)
-        elif format == "json":
-            file_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Сохранить файл", "", "JSON Files (*.json);;All Files (*)")
-            self.model.export_json(mails, file_path)
-            self.ui.InformationBrowser.append("Письма успешно экспортированы в файл: " + file_path)
-            
-        
-    
+        try:
+            if format == "csv":
+                file_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Сохранить файл", "", "CSV Files (*.csv);;All Files (*)")
+                if file_path == "": return
+                self.model.export_csv(mails, file_path)
+                self.ui.InformationBrowser.append("Письма успешно экспортированы в файл: " + file_path)
+            elif format == "txt":
+                folder_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Выберите папку", ".")
+                if folder_path == "": return
+                self.model.export_txt(mails, folder_path)
+                self.ui.InformationBrowser.append("Письма успешно экспортированы в папку: " + folder_path)
+            elif format == "json":
+                file_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Сохранить файл", "", "JSON Files (*.json);;All Files (*)")
+                if file_path == "": return
+                self.model.export_json(mails, file_path)
+                self.ui.InformationBrowser.append("Письма успешно экспортированы в файл: " + file_path)
+        except Exception as error:
+            self.ShowError(str(error))
+
     def DBSettingsHandler(self):
         self.dbWindow = DBWindow(self.model)
         self.dbWindow.show()
 
     def CompaniesHandler(self):
-        self.companiesWindow = CompaniesWindow(self.model)
+        self.companiesWindow = CompaniesWindow(self.model, self)
         self.companiesWindow.show()

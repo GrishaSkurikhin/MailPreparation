@@ -42,7 +42,7 @@ class Email:
                 mail = Mail(
                         id=msg.get('Message-ID'),
                         in_reply_to=msg.get('In-Reply-To'),
-                        sender=self.__parse_address(msg.get('Sender'))[0],
+                        sender=self.__parse_address(msg.get('From'))[0],
                         recievers=self.__get_all_recievers(msg),
                         subject=msg.get('Subject'),
                         body=self.__parse_body(msg),
@@ -59,7 +59,6 @@ class Email:
             
     def __get_files(self, msg: Message) -> list[dict]:
         attachments = []
-
         for part in msg.walk():
             try:
                 if part.get_content_disposition() == 'attachment':
@@ -111,7 +110,7 @@ class Email:
                     return ""
                 return self.__parse_html(body.get_content())
             else:
-                return body.get_content()
+                return '\n'.join([line for line in body.get_content().split('\n') if not line.startswith('>')])
         except ParseHTMLError as error:
             raise ParseBodyError(error)
         except Exception:
