@@ -8,7 +8,7 @@ def main():
     view = MainWindow()
     view.show()
 
-    app.aboutToQuit.connect(lambda: view.model.dataStorage.close())
+    app.aboutToQuit.connect(view.model.dataStorage.close)
     return app.exec()
     
 if __name__ == "__main__":

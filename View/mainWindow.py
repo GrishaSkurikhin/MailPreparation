@@ -11,6 +11,7 @@ from View.ui.mainWindow_ui import Ui_MainWindow
 from View.textWindow import TextWindow
 from View.DBWindow import DBWindow
 from View.companiesWindow import CompaniesWindow
+from View.helpWindow import HelpWindow
 
 class ImportThread(QThread):
     finished = pyqtSignal()
@@ -56,6 +57,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.MailsTreeView.customContextMenuRequested.connect(self.TreeViewMenuHandler)
         self.ui.DBSettings.triggered.connect(self.DBSettingsHandler)
         self.ui.Companies.triggered.connect(self.CompaniesHandler)
+        self.ui.Help_2.triggered.connect(self.HelpHandler)
+        self.ui.Exit_2.triggered.connect(self.close)
 
         # Загрузка данных
         if self.model.dataStorage.check_connection(self.model.config.get_data()["database"]):
@@ -319,3 +322,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         self.companiesWindow = CompaniesWindow(self.model, self)
         self.companiesWindow.show()
+    
+    def HelpHandler(self):
+        self.helpWindow = HelpWindow()
+        self.helpWindow.show()
