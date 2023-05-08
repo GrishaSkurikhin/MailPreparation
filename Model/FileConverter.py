@@ -41,12 +41,3 @@ class FileConverter:
     @staticmethod
     def from_txt(file: bytes) -> str:
         return file.decode("utf-8")
-
-
-'''
-with open("das.docx", "rb") as file:
-    bytes = file.read()
-    with tempfile.NamedTemporaryFile(delete=False) as f:
-        f.write(bytes)
-        subprocess.run(['start', '', f.name], shell=True)
-'''

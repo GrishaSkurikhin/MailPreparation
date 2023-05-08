@@ -1,0 +1,15 @@
+configparser
+psycopg2
+pathlib
+pdf2image
+functools
+pytesseract
+docx
+PyQt5
+jsons
+python-csv
+beautifulsoup4
+python-dateutil
+regex
+pyqtdarktheme
+memory-tempfile
